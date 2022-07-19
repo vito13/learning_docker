@@ -490,3 +490,71 @@ Successfully tagged test/cowsay-dockerfile:latest
                 ||     ||
 
 ```
+## push到docker hub
+需要提前使用cli登录docker
+```
+push前添加作者信息到Dockerfile，如下
+
+[huawei@10 cowsay]$ cat Dockerfile
+FROM debian
+MAINTAINER Wei Hua <381513159@qq.com>
+RUN apt-get update && apt-get install -y cowsay fortune
+COPY entrypoint.sh /
+ENTRYPOINT ["/entrypoint.sh"]
+
+获取id号
+[huawei@10 cowsay]$ docker images
+REPOSITORY                               TAG       IMAGE ID       CREATED             SIZE
+<none>                                   <none>    2e4b18061536   36 minutes ago      124MB
+chpiwww/cowsay                           latest    ba2b01572d39   About an hour ago   191MB
+test/cowsay-dockerfile                   latest    ba2b01572d39   About an hour ago   191MB
+<none>                                   <none>    51d00fa4a8fe   About an hour ago   191MB
+test/cowsayimage222                      latest    07853326409f   2 hours ago         191MB
+test/cowsayimage                         latest    180aaa495ec1   2 hours ago         191MB
+nginx                                    v3        640ba0b3b9ee   3 hours ago         141MB
+nginx                                    v2        3bbeed8654df   3 hours ago         141MB
+<none>                                   <none>    98775ec51603   13 days ago         191MB
+debian                                   latest    d2780094a226   2 weeks ago         124MB
+nginx                                    latest    605c77e624dd   6 months ago        141MB
+hello-world                              latest    feb5d9fea6a5   9 months ago        13.3kB
+ubuntu                                   16.04     b6f507652425   10 months ago       135MB
+ubuntu                                   14.04     13b66b487594   15 months ago       197MB
+soulteary/docker-gitbook-pdf-generator   1.0.0     539b69f2f478   23 months ago       507MB
+debian                                   wheezy    10fcec6d95c4   3 years ago         88.3MB
+
+设置tag
+[huawei@10 cowsay]$ docker tag ba2b01572d39 choupiwww/cowsay:statle
+
+push
+[huawei@10 cowsay]$ docker push choupiwww/cowsay:statle
+The push refers to repository [docker.io/choupiwww/cowsay]
+7a41cb7f7f8f: Pushed
+e840f05aea32: Pushed
+97d5fec864d8: Pushed
+statle: digest: sha256:c498f57211f6ea12d6a30dc3cf2d195edec9a8b38f8ac09606c30f57c64acb90 size: 948
+
+push成功后可以在docker hub自己的主页中看到信息了，接下来可以pull一下
+[huawei@n148 playground]$ docker search cowsay:statle
+NAME      DESCRIPTION   STARS     OFFICIAL   AUTOMATED
+[huawei@n148 playground]$ docker pull choupiwww/cowsay:statle
+statle: Pulling from choupiwww/cowsay
+1339eaac5b67: Pull complete
+b960e817cb2a: Pull complete
+3cad8f5c5233: Pull complete
+Digest: sha256:c498f57211f6ea12d6a30dc3cf2d195edec9a8b38f8ac09606c30f57c64acb90
+Status: Downloaded newer image for choupiwww/cowsay:statle
+docker.io/choupiwww/cowsay:statle
+
+
+接下来运行一下
+[huawei@n148 playground]$ docker run choupiwww/cowsay:statle hooooo
+ ________
+< hooooo >
+ --------
+        \   ^__^
+         \  (oo)\_______
+            (__)\       )\/\
+                ||----w |
+                ||     ||
+
+```
