@@ -1,3 +1,11 @@
+---
+阅读进度
+
+第一本Docker书修订版	再继续第4章
+Docker开发指南			再继续第5章
+Docker从入门到实践		再看Dockerfile 指令详解
+
+---
 # 安装
 ## 使用国内源
 ```
@@ -225,6 +233,30 @@ $ docker container prune
 $ docker export 7691a814370e > ubuntu.tar
 $ cat ubuntu.tar | docker import - test/ubuntu:v1.0
 ```
+## 其它容器命令
+### docker create
+从镜像创建容器，但不启动它。与 docker run 大部分参数相同。docker start 命令可以用来启动容器。
+### docker cp
+在容器和主机之间复制文件和目录。
+
+### docker kill
+发送信号给容器中的主进程（PID 1）。默认发送 SIGKILL 信号，这将导致容器立即退出。另外，发送的信号可以通过 -s 选项指定。该命令会返回容器的 ID。
+
+### docker pause
+暂停容器内的所有进程。进程不会接收到关于它们被暂停的任何信号，因此它们无法执行正常结束或清理的程序。进程可以通过 docker unpause 命令重启。docker pause 的底
+层利用 Linux 的 cgroup freezer 功能实现。这个命令与 docker stop 不同，docker stop会将所有进程停止，并对进程发送信号，让它们察觉得到。
+
+### docker unpause
+重启先前被 docker pause 命令暂停的容器。
+
+### docker info
+打印 Docker 系统和主机的各种信息。
+
+### docker port
+把容器作为参数，列出它的端口映射信息。还可以指定要查看的容器内部端口和协议。
+常用于执行 docker run -P <image> 命令之后查看已分配的端口。
+
+
 # 镜像
 
 ## 镜像的pull、push
@@ -558,3 +590,12 @@ docker.io/choupiwww/cowsay:statle
                 ||     ||
 
 ```
+## 其它镜像命令
+### docker history
+输出镜像中每个镜像层的信息
+
+### docker load
+
+### docker rmi
+
+### docker save
