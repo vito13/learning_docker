@@ -1,8 +1,8 @@
 ---
 阅读进度
 
-第一本Docker书修订版	再继续第4章
-Docker开发指南			再继续第5章
+第一本Docker书修订版	再继续第5章
+Docker开发指南			再继续第6章
 Docker从入门到实践		再看Dockerfile 指令详解
 
 ---
@@ -81,9 +81,14 @@ $ sudo sysctl -p
 # 容器
 ## 启动ubuntu的bash（交互式，非守护）
 运行了几个简单的命令，安装了vi，注意在容器里exit后安装的更新就都没了...  
-启动时候也可以指定版本：docker run -t -i --name new_container ubuntu:12.04 /bin/bash 
+启动时候也可以指定版本：docker run -t -i --name new_container ubuntu:12.04 /bin/bash  
+
+docker run命令从镜像启动一个容器时，如果该镜像不在本地，Docker会先从Docker Hub下载该镜像。如果没有指定具体的镜像标签，那么Docker会自动下载latest标签的镜像。另外也可以先docker pull，然后再手动启动之。。。
+
 * -t 选项让Docker分配一个伪终端（pseudo-tty）并绑定到容器的标准输入上
 * -i 则让容器的标准输入保持打开。
+* -d 以分离（detached）的方式在后台运行
+* ubuntu:12.04为镜像名称以及tag，tag可以通过docker images列出本地镜像看到
 ```
 docker run -i -t ubuntu /bin/bash
 root@063a7e6e1a9d:/# hostname
@@ -118,6 +123,8 @@ vim is already the newest version (2:8.1.2269-1ubuntu5.7).
 0 upgraded, 0 newly installed, 0 to remove and 33 not upgraded.
 root@283fccc81a23:/# exit
 ```
+## 退出容器
+exit
 ## 容器命名
 docker ps -a就可以看到定义的名字了，否则就是随机名字
 ```
@@ -167,8 +174,7 @@ docker inspect --format '{{.Name}} {{.State.Running}}' daemon_dave bob_the_conta
 ## 创建容器（守护式）
 其实就是执行个dead loop，可以在外面stop停止之
 ```
-[huawei@n148 ~]$ docker run --name daemon_dave -d ubuntu /bin/sh -c "while
-> true; do echo hello world; sleep 1; done"
+[huawei@n148 ~]$ docker run --name daemon_dave -d ubuntu /bin/sh -c "while true; do echo hello world; sleep 1; done"
 d7e2c3124fc0ed19d4793db768fbd2a1c7c5b90b214e8de2464a1d03054a14cd
 [huawei@n148 ~]$ docker ps -a
 CONTAINER ID   IMAGE          COMMAND                   CREATED          STATUS                        PORTS     NAMES
@@ -258,6 +264,36 @@ $ cat ubuntu.tar | docker import - test/ubuntu:v1.0
 
 
 # 镜像
+## 创建Docker Hub账号
+到网站注册即可
+
+## 登录与登出Docker Hub
+可以使用login、logout进行登入登出，并且在本地会记录此信息到文件
+```
+[huawei@n148 ~]$ docker login
+Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
+Username: choupiwww
+Password:
+WARNING! Your password will be stored unencrypted in /home/huawei/.docker/config.json.
+Configure a credential helper to remove this warning. See
+https://docs.docker.com/engine/reference/commandline/login/#credentials-store
+
+Login Succeeded
+[huawei@n148 ~]$ cat $HOME/.docker/config.json
+{
+        "auths": {
+                "https://index.docker.io/v1/": {
+                        "auth": "Y2hvdXBpd3d3OjFxYXoyd3N4Mw=="
+                }
+        }
+}[huawei@n148 ~]$docker logout
+Removing login credentials for https://index.docker.io/v1/
+[huawei@n148 ~]$ cat $HOME/.docker/config.json
+{
+        "auths": {}
+}[huawei@n148 ~]$
+
+```
 
 ## 镜像的pull、push
 docker pull [选项] [Docker Registry 地址[:端口号]/]仓库名[:标签]
@@ -307,33 +343,7 @@ khs1994/gitbook               Build GitBook In Docker                         1
 ```
 
 
-## 登录与登出dockerhub
-可以使用login、logout进行登入登出，并且在本地会记录此信息到文件
-```
-[huawei@n148 ~]$ docker login
-Login with your Docker ID to push and pull images from Docker Hub. If you don't have a Docker ID, head over to https://hub.docker.com to create one.
-Username: choupiwww
-Password:
-WARNING! Your password will be stored unencrypted in /home/huawei/.docker/config.json.
-Configure a credential helper to remove this warning. See
-https://docs.docker.com/engine/reference/commandline/login/#credentials-store
 
-Login Succeeded
-[huawei@n148 ~]$ cat $HOME/.docker/config.json
-{
-        "auths": {
-                "https://index.docker.io/v1/": {
-                        "auth": "Y2hvdXBpd3d3OjFxYXoyd3N4Mw=="
-                }
-        }
-}[huawei@n148 ~]$docker logout
-Removing login credentials for https://index.docker.io/v1/
-[huawei@n148 ~]$ cat $HOME/.docker/config.json
-{
-        "auths": {}
-}[huawei@n148 ~]$
-
-```
 ## 使用commit制作镜像
 首先使用了debain作为基础，然后update后下载了一个程序，最终commit之。  
 其实可以将commit理解为将被修改的copy on write数据再次存储为一层镜像
@@ -366,9 +376,11 @@ sha256:180aaa495ec129edacfb27597e9761326481948b18b2d772f25811694a4376d9
 另外还可以加入更多的参数，--author 是指定修改的作者，--message 则是记录本次修改的内容。
 commit提交的只是创建容器的镜像与容器的当前状态之间有差异的部分，这使得该更新非常轻量。
 
+类型如下：
+docker commit -m"A new custom image" -a"James Turnbull" 4aab3ce3cb76 jamtur01/apache2:webserver 
 
 
-
+再次运行新的刚commit后的
 [huawei@10 docker]$ docker run test/cowsayimage /usr/games/cowsay "Moo"
  _____
 < Moo >
@@ -403,9 +415,12 @@ FROM debian
 RUN apt-get update && apt-get install -y cowsay fortune
 
 
-构建镜像
+构建镜像，build时可通过-t指定“镜像名:标签”，默认tag为latest
 [huawei@10 cowsay]$ docker build -t test/cowsay-dockerfile .
 还支持从压缩包、Git repo、标准输入、管道来进行构建，暂未做测试
+如Dockerfile在github上：
+sudo docker build -t="jamtur01/static_web:v1" git@github.com:jamtur01/docker-static_web
+
 
 
 查看新构建的镜像
@@ -590,12 +605,63 @@ docker.io/choupiwww/cowsay:statle
                 ||     ||
 
 ```
+## Dockerfile指令
+
+## Dockerfile的构建缓存
+Dockerfile build执行过程中成功完成每一步后都会将结果缓存起来，再次执行则会跳过已经成功缓存的步骤，如果不需要已缓存的内容则可以使用--no-cache，如  
+docker build --no-cache -t="jamtur01/static_web" .
 ## 其它镜像命令
 ### docker history
-输出镜像中每个镜像层的信息
-
+输出镜像中每个镜像层的信息，以及创建这些层的Dockerfile指令。如
+docker history ba2b01572d39
 ### docker load
 
 ### docker rmi
 
 ### docker save
+
+# 实践
+## flask服务器
+```
+[huawei@10 identidock]$ tree
+.
+├── app
+│   └── identidock.py
+└── Dockerfile
+
+[huawei@10 identidock]$ cat app/identidock.py
+
+from flask import Flask
+app = Flask(__name__)
+@app.route('/')
+def hello_world():
+    return 'Hello Docker'
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0')
+
+
+[huawei@10 identidock]$ cat Dockerfile
+FROM python:3.4
+RUN pip install Flask==0.10.1
+WORKDIR /app
+COPY app /app
+CMD ["python", "identidock.py"]
+
+
+构建并启动后使用curl进行测试
+$ docker build -t identidock .
+$ docker run -d -p 5000:5000 identidock
+$ curl localhost:5000 
+Hello World!
+
+
+关闭去除后重新启动，此次将当前路径下的app作为docker内的app路径，类似共享文件夹吧。。。
+$ docker stop $(docker ps -lq) 
+0c75444e8f5f 
+$ docker rm $(docker ps -lq)
+$ docker run -d -p 5000:5000 -v "$PWD"/app:/app identidock
+$ curl localhost:5000
+Hello World!
+
+然后可以修改identidock.py中hello的字符串，再次测试是否外部curl会改变
+```
